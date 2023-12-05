@@ -115,7 +115,9 @@ def get_destination_from_next_map(lines, map_start_value, destination_from_previ
             return destination_from_previous_step
 
         if int(source_start) <= int(destination_from_previous_step) <= int(source_start) + int(range_length):
-            return str(int(destination) + int(destination_from_previous_step) - int(source_start)) 
+            return str(int(destination) + int(destination_from_previous_step) - int(source_start))
+
+    return destination_from_previous_step
 
 
 
@@ -127,7 +129,6 @@ def part1():
         split_seeds.remove('seeds:')
 
         map_start_values = []
-        map_stop_values = []
         for i, line in enumerate(lines):
             if 'map:' in line:
                 map_start_values.append(i + 1)
@@ -140,6 +141,73 @@ def part1():
 
         print(lowest_destination)
 
+"""
+--- Part Two ---
+
+Everyone will starve if you only plant such a small number of seeds. Re-reading the almanac, it looks like the seeds: line actually describes ranges of seed numbers.
+
+The values on the initial seeds: line come in pairs. Within each pair, the first value is the start of the range and the second value is the length of the range. So, in the first line of the example above:
+
+seeds: 79 14 55 13
+
+This line describes two ranges of seed numbers to be planted in the garden. The first range starts with seed number 79 and contains 14 values: 79, 80, ..., 91, 92. The second range starts with seed number 55 and contains 13 values: 55, 56, ..., 66, 67.
+
+Now, rather than considering four seed numbers, you need to consider a total of 27 seed numbers.
+
+In the above example, the lowest location number can be obtained from seed number 82, which corresponds to soil 84, fertilizer 84, water 84, light 77, temperature 45, humidity 46, and location 46. So, the lowest location number is 46.
+
+Consider all of the initial seed numbers listed in the ranges on the first line of the almanac.
+What is the lowest location number that corresponds to any of the initial seed numbers?
+"""
+
+def get_reverse_map_solution(lines, map_start_value, answer_to_try):
+    for line in lines[map_start_value:]:
+        try:
+            destination, source_start, range_length = line.split()
+        except ValueError:
+            return answer_to_try
+        if int(destination) <= answer_to_try <= (int(destination) + int(range_length)):
+            return int(source_start) + (answer_to_try - int(destination))
+    return answer_to_try
+
+
+def part2():
+    with open('input.txt', 'r') as myinput:
+        lowest_destination = None
+        lines = myinput.readlines()
+        split_seeds = lines[0].split()
+        split_seeds.remove('seeds:')
+
+        map_start_values = []
+        for i, line in enumerate(lines):
+            if 'map:' in line:
+                map_start_values.append(i + 1)
+
+        seed_ranges = []
+        for i, value in enumerate(split_seeds):
+            if i % 2 == 0:
+                seed_ranges.append({'start': int(value), 'end': int(value) + int(split_seeds[i+1])})
+
+
+        counter = 0
+        answer_to_try = 0
+        keep_going = True
+
+        while keep_going:
+            for map_start_value in reversed(map_start_values):
+                if map_start_value == map_start_values[-1]:
+                    answer_to_try = counter
+                answer_to_try = get_reverse_map_solution(lines, map_start_value, answer_to_try)
+            for each_range in seed_ranges:
+                if each_range['start'] <= answer_to_try <= each_range['end']:
+                    keep_going = False
+                    print('Final counter was: ', counter)
+                    break
+            counter += 1
+            if counter % 10000 == 0:
+                print(counter)
+
+
 
 
                 
@@ -147,5 +215,6 @@ def part1():
 
 
 if __name__ == '__main__':
-    part1()
+    # part1()
+    part2()
 
